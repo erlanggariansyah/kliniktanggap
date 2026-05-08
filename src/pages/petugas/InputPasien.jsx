@@ -44,11 +44,10 @@ const InputPasien = () => {
 
     setLoading(true);
     try {
-      await new Promise(r => setTimeout(r, 1200));
-      const patient = addPatient(formData);
+      const patient = await addPatient(formData);
       setCalculatedPatient(patient);
       setToast({ message: 'Prioritas dihitung', type: 'success' });
-    } catch {
+    } catch (error) {
       setToast({ message: 'Terjadi kesalahan', type: 'error' });
     } finally {
       setLoading(false);

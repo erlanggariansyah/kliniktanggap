@@ -3,23 +3,21 @@ import { useApp } from '../../context/AppContext';
 import { Users, UserCheck, Activity, Settings } from 'lucide-react';
 
 const AdminDashboard = () => {
-  const { patients, weights } = useApp();
+  const { patients, weights, dashboardData } = useApp();
 
-  const totalUsers = 3;
-  const totalPatients = patients.length;
+  const totalUsers = dashboardData?.totalUsers || 0;
+  const totalPatients = dashboardData?.totalPatients || patients.length;
+  const systemStatus = dashboardData?.systemStatus || 'Online';
+  const configStatus = dashboardData?.configStatus || 'Aktif';
 
   const stats = [
     { title: 'Total User', value: totalUsers, icon: Users },
     { title: 'Total Pasien', value: totalPatients, icon: UserCheck },
-    { title: 'Status Sistem', value: 'Online', icon: Activity },
-    { title: 'Konfigurasi', value: 'Aktif', icon: Settings }
+    { title: 'Status Sistem', value: systemStatus, icon: Activity },
+    { title: 'Konfigurasi', value: configStatus, icon: Settings }
   ];
 
-  const recentActivities = [
-    { id: 1, action: 'Input pasien baru', user: 'Petugas', time: '2 menit lalu' },
-    { id: 2, action: 'Perubahan bobot', user: 'Admin', time: '15 menit lalu' },
-    { id: 3, action: 'Login dokter', user: 'Dr. Ahmad', time: '1 jam lalu' }
-  ];
+  const recentActivities = dashboardData?.latestActivities || [];
 
   return (
     <div className="space-y-6">
@@ -61,10 +59,10 @@ const AdminDashboard = () => {
 
           <div className="space-y-4">
             {[
-              { label: 'Keparahan', value: weights.severity },
-              { label: 'Usia', value: weights.age },
-              { label: 'Durasi', value: weights.duration },
-              { label: 'Riwayat', value: weights.history }
+              { label: 'Keparahan', value: dashboardData?.weightConfig?.severityWeight || weights.severity },
+              { label: 'Usia', value: dashboardData?.weightConfig?.ageWeight || weights.age },
+              { label: 'Durasi', value: dashboardData?.weightConfig?.durationWeight || weights.duration },
+              { label: 'Riwayat', value: dashboardData?.weightConfig?.historyWeight || weights.history }
             ].map((item, i) => (
               <div key={i}>
                 <div className="flex justify-between text-sm mb-1">
@@ -100,11 +98,11 @@ const AdminDashboard = () => {
           </h2>
 
           <div className="space-y-3">
-            {recentActivities.map((a) => (
-              <div key={a.id} className="text-sm">
-                <p className="text-gray-900">{a.action}</p>
+            {recentActivities.map((a, index) => (
+              <div key={index} className="text-sm">
+                <p className="text-gray-900">{a.description}</p>
                 <p className="text-gray-500 text-xs">
-                  {a.user} • {a.time}
+                  {a.userName} • {new Date(a.createdAt).toLocaleString('id-ID')}
                 </p>
               </div>
             ))}

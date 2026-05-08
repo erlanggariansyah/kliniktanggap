@@ -146,7 +146,13 @@ const AntrianPetugas = () => {
 
                     {p.status === 'waiting' && (
                       <button
-                        onClick={() => updatePatientStatus(p.id, 'in-progress')}
+                        onClick={async () => {
+                          try {
+                            await updatePatientStatus(p.id, 'in-progress');
+                          } catch (error) {
+                            console.error('Failed to update status:', error);
+                          }
+                        }}
                         className="text-gray-900 hover:underline"
                       >
                         Mulai
@@ -155,7 +161,13 @@ const AntrianPetugas = () => {
 
                     {p.status === 'in-progress' && (
                       <button
-                        onClick={() => updatePatientStatus(p.id, 'completed')}
+                        onClick={async () => {
+                          try {
+                            await updatePatientStatus(p.id, 'completed');
+                          } catch (error) {
+                            console.error('Failed to update status:', error);
+                          }
+                        }}
                         className="text-gray-900 hover:underline"
                       >
                         Selesai

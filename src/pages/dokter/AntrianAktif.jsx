@@ -154,7 +154,14 @@ const AntrianAktif = () => {
 
                 {selectedPatient.status === 'waiting' && (
                   <button
-                    onClick={() => updatePatientStatus(selectedPatient.id, 'in-progress')}
+                    onClick={async () => {
+                      try {
+                        await updatePatientStatus(selectedPatient.id, 'in-progress');
+                        setSelectedPatient({ ...selectedPatient, status: 'in-progress' });
+                      } catch (error) {
+                        console.error('Failed to update status:', error);
+                      }
+                    }}
                     className="w-full bg-red-600 text-white py-2 rounded-md flex items-center justify-center text-sm"
                   >
                     <Stethoscope className="w-4 h-4 mr-2" />
@@ -165,7 +172,14 @@ const AntrianAktif = () => {
                 {selectedPatient.status === 'in-progress' && (
                   <>
                     <button
-                      onClick={() => updatePatientStatus(selectedPatient.id, 'completed')}
+                      onClick={async () => {
+                        try {
+                          await updatePatientStatus(selectedPatient.id, 'completed');
+                          setSelectedPatient({ ...selectedPatient, status: 'completed' });
+                        } catch (error) {
+                          console.error('Failed to update status:', error);
+                        }
+                      }}
                       className="w-full bg-red-500 text-white py-2 rounded-md text-sm flex items-center justify-center"
                     >
                       <CheckCircle className="w-4 h-4 mr-2" />
@@ -173,7 +187,14 @@ const AntrianAktif = () => {
                     </button>
 
                     <button
-                      onClick={() => updatePatientStatus(selectedPatient.id, 'completed', 'Dirujuk')}
+                      onClick={async () => {
+                        try {
+                          await updatePatientStatus(selectedPatient.id, 'completed', 'Dirujuk ke RS Harapan Kita');
+                          setSelectedPatient({ ...selectedPatient, status: 'completed' });
+                        } catch (error) {
+                          console.error('Failed to update status:', error);
+                        }
+                      }}
                       className="w-full border border-gray-300 py-2 rounded-md text-sm flex items-center justify-center"
                     >
                       <AlertTriangle className="w-4 h-4 mr-2" />

@@ -1,82 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import { Search, FileText, User, Settings, Stethoscope, Calendar, Activity } from 'lucide-react';
 
 const Logs = () => {
-  // Mock logs data - in real app, this would come from API
-  const [logs] = useState([
-    {
-      id: 1,
-      timestamp: '2024-01-15T10:30:00',
-      action: 'Input pasien baru',
-      user: 'Petugas Front Desk',
-      userRole: 'petugas',
-      details: 'Pasien: Ahmad Surya, Skor: 7.5, Prioritas: Sedang',
-      type: 'patient_input'
-    },
-    {
-      id: 2,
-      timestamp: '2024-01-15T10:25:00',
-      action: 'Perubahan bobot prioritas',
-      user: 'Admin Sistem',
-      userRole: 'admin',
-      details: 'Keparahan: 0.4 → 0.5, Usia: 0.2 → 0.1',
-      type: 'weight_change'
-    },
-    {
-      id: 3,
-      timestamp: '2024-01-15T10:20:00',
-      action: 'Pasien selesai dilayani',
-      user: 'Dr. Ahmad',
-      userRole: 'dokter',
-      details: 'Pasien: Budi Santoso, Diagnosis: Sakit kepala ringan',
-      type: 'patient_completed'
-    },
-    {
-      id: 4,
-      timestamp: '2024-01-15T10:15:00',
-      action: 'Login user',
-      user: 'Dr. Ahmad',
-      userRole: 'dokter',
-      details: 'Login berhasil dari browser Chrome',
-      type: 'login'
-    },
-    {
-      id: 5,
-      timestamp: '2024-01-15T10:10:00',
-      action: 'Input pasien baru',
-      user: 'Petugas Front Desk',
-      userRole: 'petugas',
-      details: 'Pasien: Siti Aminah, Skor: 9.2, Prioritas: Tinggi',
-      type: 'patient_input'
-    },
-    {
-      id: 6,
-      timestamp: '2024-01-15T09:45:00',
-      action: 'Pasien dirujuk',
-      user: 'Dr. Ahmad',
-      userRole: 'dokter',
-      details: 'Pasien: Siti Aminah, Rujukan: RS Harapan Kita',
-      type: 'patient_referred'
-    },
-    {
-      id: 7,
-      timestamp: '2024-01-15T09:30:00',
-      action: 'Login user',
-      user: 'Petugas Front Desk',
-      userRole: 'petugas',
-      details: 'Login berhasil dari browser Firefox',
-      type: 'login'
-    },
-    {
-      id: 8,
-      timestamp: '2024-01-15T08:00:00',
-      action: 'Login user',
-      user: 'Admin Sistem',
-      userRole: 'admin',
-      details: 'Login berhasil dari browser Edge',
-      type: 'login'
-    }
-  ]);
+  const { user } = useAuth();
+  const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchLogs = async () => {
+      try {
+        const headers = user?.token ? { Authorization: `Bearer ${user.token}` } : {};
+        const response = await fetch('/api/logs', { headers });
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            setLogs(data.data);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch logs:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLogs();
+  }, [user]);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -84,14 +34,21 @@ const Logs = () => {
 
   // Filter logs
   const filteredLogs = logs.filter(log => {
-    const matchesSearch = log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         log.user.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         log.details.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = typeFilter === 'all' || log.type === typeFilter;
-    const matchesDate = !dateFilter || log.timestamp.startsWith(dateFilter);
+  const search = searchTerm.toLowerCase();
 
-    return matchesSearch && matchesType && matchesDate;
-  });
+  const matchesSearch =
+    (log.description || '').toLowerCase().includes(search) ||
+    (log.userName || '').toLowerCase().includes(search) ||
+    (log.detail || '').toLowerCase().includes(search);
+
+  const matchesType =
+    typeFilter === 'all' || log.type === typeFilter;
+
+  const matchesDate =
+    !dateFilter || (log.createdAt || '').startsWith(dateFilter);
+
+  return matchesSearch && matchesType && matchesDate;
+});
 
   const getActionIcon = (type) => {
     switch (type) {
@@ -145,7 +102,6 @@ return (
       </p>
     </div>
 
-    {/* ✅ FILTER (PALING ATAS - PRIMARY) */}
     <div className="bg-white border border-gray-200 rounded-lg p-4 flex flex-wrap gap-3 items-center">
 
       <div className="relative">
@@ -205,7 +161,11 @@ return (
     {/* ✅ LOG LIST (MAIN CONTENT) */}
     <div className="bg-white border border-gray-200 rounded-lg divide-y">
 
-      {filteredLogs.map((log) => {
+      {loading ? (
+        <div className="py-12 text-center text-gray-400 text-sm">
+          Memuat data...
+        </div>
+      ) : filteredLogs.map((log) => {
         const ActionIcon = getActionIcon(log.type);
 
         return (
@@ -223,16 +183,16 @@ return (
                 <div>
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-medium text-gray-900">
-                      {log.action}
+                      {log.description}
                     </p>
 
                     <span className={`text-xs px-2 py-0.5 rounded ${getActionColor(log.type)}`}>
-                      {getActionText(log.action)}
+                      {getActionText(log.description)}
                     </span>
                   </div>
 
                   <p className="text-xs text-gray-500 mt-1">
-                    {log.details}
+                    {log.detail}
                   </p>
                 </div>
 
@@ -241,10 +201,10 @@ return (
               {/* RIGHT */}
               <div className="text-right">
                 <div className={`text-xs px-2 py-0.5 rounded ${getUserRoleColor(log.userRole)}`}>
-                  {log.user}
+                  {log.userName}
                 </div>
                 <p className="text-xs text-gray-400 mt-1">
-                  {new Date(log.timestamp).toLocaleString('id-ID', {
+                  {new Date(log.createdAt).toLocaleString('id-ID', {
                     day: '2-digit',
                     month: 'short',
                     hour: '2-digit',
@@ -259,7 +219,7 @@ return (
         );
       })}
 
-      {filteredLogs.length === 0 && (
+      {!loading && filteredLogs.length === 0 && (
         <div className="py-12 text-center text-gray-400 text-sm">
           Tidak ada data
         </div>
