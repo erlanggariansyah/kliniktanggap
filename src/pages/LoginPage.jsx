@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ArrowRight } from 'lucide-react';
 import Toast from '../components/Toast';
@@ -112,7 +112,15 @@ const LoginPage = () => {
 
               {/* PASSWORD */}
               <div>
-                <label className="text-sm text-gray-600">Password</label>
+                <div className="flex justify-between items-center">
+                  <label className="text-sm text-gray-600">Password</label>
+                  <Link
+                    to="/forgot-password"
+                    className="text-xs text-red-600 hover:text-red-700 hover:underline transition-colors"
+                  >
+                    Lupa Password?
+                  </Link>
+                </div>
                 <input
                   name="password"
                   type="password"

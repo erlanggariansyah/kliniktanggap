@@ -6,6 +6,8 @@ import { AppProvider } from './context/AppContext';
 // Pages
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 
 // Petugas Pages
 import PetugasDashboard from './pages/petugas/PetugasDashboard';
@@ -98,6 +100,8 @@ function App() {
               {/* Public Routes */}
               <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<LoginPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
 
               {/* Protected Routes */}
               <Route

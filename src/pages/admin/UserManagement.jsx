@@ -1,15 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Toast from '../../components/Toast';
 import { UserPlus, Edit, Trash2, Users, Shield, Stethoscope } from 'lucide-react';
+import Loading from '../../components/Loading';
+import { useAuth } from '../../context/AuthContext';
 
 const UserManagement = () => {
-  // Mock user data - in real app, this would come from API
-  const [users, setUsers] = useState([
-    { id: 1, name: 'Petugas Front Desk', email: 'petugas@klinik.com', role: 'petugas', status: 'active', lastLogin: '2024-01-15T08:00:00' },
-    { id: 2, name: 'Dr. Ahmad', email: 'dokter@klinik.com', role: 'dokter', status: 'active', lastLogin: '2024-01-15T09:00:00' },
-    { id: 3, name: 'Admin Sistem', email: 'admin@klinik.com', role: 'admin', status: 'active', lastLogin: '2024-01-15T07:00:00' }
-  ]);
-
+  const [users, setUsers] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadingAction, setLoadingAction] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [toast, setToast] = useState(null);
@@ -20,6 +18,40 @@ const UserManagement = () => {
     role: 'petugas',
     password: ''
   });
+
+  const { user } = useAuth();
+
+  const fetchUsers = async () => {
+    setIsLoading(true);
+    try {
+      const headers = { 'Content-Type': 'application/json' };
+      if (user?.token) headers.Authorization = `Bearer ${user.token}`;
+
+      const response = await fetch('/api/users', { headers });
+      const data = await response.json();
+      if (response.ok && data.success) {
+        // Map backend response roles to lowercase for consistent frontend handling
+        const mappedUsers = data.data.map(user => ({
+          ...user,
+          role: (user.role || '').toString().toLowerCase(),
+          status: user.active ? 'active' : 'inactive',
+          lastLogin: user.lastLoginAt
+        }));
+        setUsers(mappedUsers);
+      } else {
+        setToast({ message: data.message || 'Gagal memuat data user', type: 'error' });
+      }
+    } catch (err) {
+      console.error('fetchUsers error', err);
+      setToast({ message: 'Terjadi kesalahan jaringan saat memuat user', type: 'error' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   const handleInputChange = (e) => {
     setFormData({
@@ -39,22 +71,41 @@ const UserManagement = () => {
     setShowAddForm(false);
   };
 
-  const handleAddUser = () => {
+  const handleAddUser = async () => {
     if (!formData.name || !formData.email || !formData.password) {
       setToast({ message: 'Mohon lengkapi semua field', type: 'error' });
       return;
     }
 
-    const newUser = {
-      id: Date.now(),
-      ...formData,
-      status: 'active',
-      lastLogin: null
-    };
+    setLoadingAction(true);
+    try {
+      const headers = { 'Content-Type': 'application/json' };
+      if (user?.token) headers.Authorization = `Bearer ${user.token}`;
 
-    setUsers([...users, newUser]);
-    setToast({ message: 'User berhasil ditambahkan!', type: 'success' });
-    resetForm();
+      const response = await fetch('/api/users', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          role: formData.role.toUpperCase()
+        })
+      });
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setToast({ message: 'User berhasil ditambahkan!', type: 'success' });
+        fetchUsers();
+        resetForm();
+      } else {
+        setToast({ message: data.message || 'Gagal menambahkan user', type: 'error' });
+      }
+    } catch {
+      setToast({ message: 'Terjadi kesalahan jaringan', type: 'error' });
+    } finally {
+      setLoadingAction(false);
+    }
   };
 
   const handleEditUser = (user) => {
@@ -68,26 +119,65 @@ const UserManagement = () => {
     setShowAddForm(true);
   };
 
-  const handleUpdateUser = () => {
+  const handleUpdateUser = async () => {
     if (!formData.name || !formData.email) {
       setToast({ message: 'Mohon lengkapi nama dan email', type: 'error' });
       return;
     }
 
-    setUsers(users.map(user =>
-      user.id === editingUser.id
-        ? { ...user, name: formData.name, email: formData.email, role: formData.role }
-        : user
-    ));
+    setLoadingAction(true);
+    try {
+      const headers = { 'Content-Type': 'application/json' };
+      if (user?.token) headers.Authorization = `Bearer ${user.token}`;
 
-    setToast({ message: 'User berhasil diperbarui!', type: 'success' });
-    resetForm();
+      const response = await fetch(`/api/users/${editingUser.id}`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password || null, // Password can be blank
+          role: formData.role.toUpperCase()
+        })
+      });
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setToast({ message: 'User berhasil diperbarui!', type: 'success' });
+        fetchUsers();
+        resetForm();
+      } else {
+        setToast({ message: data.message || 'Gagal memperbarui user', type: 'error' });
+      }
+    } catch {
+      setToast({ message: 'Terjadi kesalahan jaringan', type: 'error' });
+    } finally {
+      setLoadingAction(false);
+    }
   };
 
-  const handleDeleteUser = (userId) => {
-    if (window.confirm('Apakah Anda yakin ingin menghapus user ini?')) {
-      setUsers(users.filter(user => user.id !== userId));
-      setToast({ message: 'User berhasil dihapus!', type: 'success' });
+  const handleDeleteUser = async (userId) => {
+    if (window.confirm('Apakah Anda yakin ingin menonaktifkan user ini?')) {
+      try {
+        const headers = { 'Content-Type': 'application/json' };
+        if (user?.token) headers.Authorization = `Bearer ${user.token}`;
+
+        const response = await fetch(`/api/users/${userId}`, {
+          method: 'DELETE',
+          headers
+        });
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          setToast({ message: 'User berhasil dinonaktifkan!', type: 'success' });
+          fetchUsers();
+        } else {
+          setToast({ message: data.message || 'Gagal menonaktifkan user', type: 'error' });
+        }
+      } catch (err) {
+        console.error('delete user error', err);
+        setToast({ message: 'Terjadi kesalahan jaringan', type: 'error' });
+      }
     }
   };
 
