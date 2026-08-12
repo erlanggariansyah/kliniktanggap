@@ -26,30 +26,17 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password, role) => {
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.data.role.toLowerCase() === role.toLowerCase()) {
-          const user = {
-            id: data.data.userId,
-            name: data.data.name,
-            email: data.data.email,
-            role: data.data.role.toLowerCase(),
-            token: data.data.token,
-          };
-          setUser(user);
-          localStorage.setItem('klinikTanggap_user', JSON.stringify(user));
-          return true;
-        }
-      }
-      return false;
+      // TODO: SEMENTARA bypass login tanpa validasi API (untuk demo), kembalikan ke semula
+      const user = {
+        id: 1,
+        name: role.charAt(0).toUpperCase() + role.slice(1),
+        email,
+        role: role.toLowerCase(),
+        token: 'bypass-token',
+      };
+      setUser(user);
+      localStorage.setItem('klinikTanggap_user', JSON.stringify(user));
+      return true;
     } catch (error) {
       console.error('Login error:', error);
       return false;

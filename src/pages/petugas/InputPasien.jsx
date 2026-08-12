@@ -129,6 +129,12 @@ const InputPasien = () => {
 
               <Select label="Keparahan" name="severity" value={formData.severity} onChange={handleChange}
                 options={['ringan','sedang','berat']} />
+
+              {/* EXPLANATION */}
+              <div className="rounded-md bg-blue-50 border border-blue-200 px-3 py-2 text-xs text-blue-800">
+                Keparahan ditentukan berdasarkan hasil pemeriksaan fisik dan alat tambahan,
+                seperti tekanan darah (tensi), suhu tubuh, saturasi oksigen, dan denyut nadi.
+              </div>
             </div>
 
             {/* HISTORY */}

@@ -98,7 +98,7 @@ const LoginPage = () => {
 
               {/* EMAIL */}
               <div>
-                <label className="text-sm text-gray-600">Email</label>
+                <label className="text-sm text-gray-600">Email <span className="text-red-500">*</span></label>
                 <input
                   name="email"
                   type="email"
@@ -113,7 +113,7 @@ const LoginPage = () => {
               {/* PASSWORD */}
               <div>
                 <div className="flex justify-between items-center">
-                  <label className="text-sm text-gray-600">Password</label>
+                  <label className="text-sm text-gray-600">Password <span className="text-red-500">*</span></label>
                   <Link
                     to="/forgot-password"
                     className="text-xs text-red-600 hover:text-red-700 hover:underline transition-colors"
@@ -134,7 +134,7 @@ const LoginPage = () => {
 
               {/* ROLE */}
               <div>
-                <label className="text-sm text-gray-600">Role</label>
+                <label className="text-sm text-gray-600">Role <span className="text-red-500">*</span></label>
                 <select
                   name="role"
                   value={formData.role}
